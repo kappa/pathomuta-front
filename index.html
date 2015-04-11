@@ -114,7 +114,22 @@
 		      <h3 class="panel-title">{{ name }}</h3>
 		    </div>
 		    <div class="panel-body">
-		      {{ content }}
+			  <table class="table">
+			    <thead>
+			      <tr>
+				<th>Характеристика</th>
+				<th>Значение</th>
+			      </tr>
+			    </thead>
+			    <tbody>
+		      {{#content}}
+			      <tr>
+				<td>{{ key }}</td>
+				<td>{{ val }}</td>
+			      </tr>
+		      {{/content}}
+			    </tbody>
+			  </table>
 		    </div>
 </script>
 
@@ -134,16 +149,16 @@ function load_vcf() {
 			id : 1,
 			name : "AKAP",
 			mutations : [
-			{ id : 1, name : "rs123123" },
-			{ id : 2, name : "rs12sdfsd"}
+			{ id : 334, name : "rs123123" },
+			{ id : 334, name : "rs12sdfsd"}
 			     ]
 		},
 		{
 			id : 2,
 			name : "GSTK",
 			mutations : [
-			{ id : 1, name : "rs123123" },
-			{ id : 2, name : "rs12sdfsd"}
+			{ id : 334, name : "rs123123" },
+			{ id : 334, name : "rs12sdfsd"}
 			    ]
 		}
 	    ]
@@ -153,14 +168,22 @@ function load_vcf() {
 	$('#vcf-info a').click(load_mutation);
 }
 
+function map2arr(obj) {
+	return Object.getOwnPropertyNames(obj).sort().map(
+	    function(key) { return { "key" : key, "val" : obj[key] }; } );
+}
+
 function load_mutation() {
-	var mutation = {
-		name : "rs4234234234234",
-		content :
-		    "S=1;AN=2;AC=2;CGA_XR=dbsnp.129|rs60637872&dbsnp.132|rs113047134;CGA_FI=9636|NM_005101.3|ISG15|TSS-UPSTREAM|UNKNOWN-INC;CGA_RPT=AluJb|Alu|14.5 GT:PS:FT:GQ:HQ:EHQ:CGA_CEHQ:GL:CGA_CEGL:DP:AD:CGA_RDP 1/1:.:PASS:55:55,372:55,425:31,37:-372,-55,0:-37,-31,0:45:45,45:"
-	};
-	$('#mutation').mustache('tmpl-mutation-info', mutation, {
-method : 'html' });
+	var id = $(this).data('id');
+	$.get('/cgi-bin/get-mutation?id=' + id).done(function(data) {
+		var mu = $.parseJSON(data);
+		delete mu.id;
+		mu.content = map2arr(mu);
+		mu.name = id;
+
+		$('#mutation').mustache('tmpl-mutation-info', mu,
+		    { method : 'html' });
+	    });
 }
 
 $(function() {
