@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="/kappa/favicon.ico">
+
+    <title>Патогенные мутации</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/kappa/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap theme -->
+    <link href="/kappa/css/bootstrap-theme.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body role="document">
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Пациенты:</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">(выбор) <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu" id="vcf-menu">
+    <script id="tmpl-vcf-menu" type="text/html">
+	{{#vcfs}}
+	<li><a href=# data-id="{{id}}">{{name}}</a></li>
+	{{/vcfs}}
+    </script>
+              </ul>
+            </li>
+            <li><a href="#about">О проекте</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container theme-showcase" role="main">
+
+     <div class="jumbotron">
+	     <h1>Патогенные мутации</h1>
+	<p>Просмотр информации о патогенных мутациях в геномных
+	последовательностях пациентов. Выберите вариант из меню выше
+	для просмотра информации об имеющихся патогенных мутациях.</p>
+</div>
+
+<div id="vcf-info">
+</div>
+
+<script type="text/html" id="tmpl-vcf-info">
+      <div class="page-header">
+	      <h1>{{ name }}</h1>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Ген</th>
+                <th>Мутации в этом гене</th>
+              </tr>
+            </thead>
+            <tbody>
+	      {{#genes}}
+              <tr>
+		<td><span class="label label-default"
+			data-id="{{ id }}">{{ name }}</span></td>
+                <td>
+		{{#mutations}}
+		<a href=# data-id="{{ id }}">{{ name }}</a>
+		{{/mutations}}
+		</td>
+              </tr>
+	      {{/genes}}
+            </tbody>
+          </table>
+        </div>
+	<div class="col-md-6">
+		<div class="panel panel-primary" id="mutation">
+		    <div class="panel-heading">
+		      <h3 class="panel-title"></h3>
+		    </div>
+		    <div class="panel-body">
+			<p>Выберите мутацию слева</p>
+		    </div>
+		</div>
+	</div>
+      </div>
+</script>
+
+<script type="text/html" id="tmpl-mutation-info">
+		    <div class="panel-heading">
+		      <h3 class="panel-title">{{ name }}</h3>
+		    </div>
+		    <div class="panel-body">
+		      {{ content }}
+		    </div>
+</script>
+
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="/kappa/js/bootstrap.min.js"></script>
+    <script src="https://raw.github.com/jonnyreeves/jquery-Mustache/master/jquery.mustache.js"></script>
+    <script src="https://raw.github.com/janl/mustache.js/master/mustache.js"></script>
+
+<script>
+function load_vcf() {
+	var vcf = {
+		name : "vcfBeta-NA18504-200-37-ASM.vcf",
+		genes : [
+		{
+			id : 1,
+			name : "AKAP",
+			mutations : [
+			{ id : 1, name : "rs123123" },
+			{ id : 2, name : "rs12sdfsd"}
+			     ]
+		},
+		{
+			id : 2,
+			name : "GSTK",
+			mutations : [
+			{ id : 1, name : "rs123123" },
+			{ id : 2, name : "rs12sdfsd"}
+			    ]
+		}
+	    ]
+	};
+
+	$('#vcf-info').mustache('tmpl-vcf-info', vcf, { method : 'html' });
+	$('#vcf-info a').click(load_mutation);
+}
+
+function load_mutation() {
+	var mutation = {
+		name : "rs4234234234234",
+		content :
+		    "S=1;AN=2;AC=2;CGA_XR=dbsnp.129|rs60637872&dbsnp.132|rs113047134;CGA_FI=9636|NM_005101.3|ISG15|TSS-UPSTREAM|UNKNOWN-INC;CGA_RPT=AluJb|Alu|14.5 GT:PS:FT:GQ:HQ:EHQ:CGA_CEHQ:GL:CGA_CEGL:DP:AD:CGA_RDP 1/1:.:PASS:55:55,372:55,425:31,37:-372,-55,0:-37,-31,0:45:45,45:"
+	};
+	$('#mutation').mustache('tmpl-mutation-info', mutation, {
+method : 'html' });
+}
+
+$(function() {
+    $.Mustache.addFromDom();
+
+    // fill VCF menu
+    var vcfs = { vcfs : [ { name : "vcfBeta-NA18504-200-37-ASM.vcf", id :
+    1}, { name : "vcfBeta-NA19834-200-37-ASM.vcf", id : 2 } ] };
+
+    $('#vcf-menu').mustache('tmpl-vcf-menu', vcfs, { method : 'html' });
+    $('#vcf-menu a').click(load_vcf);
+});
+</script>
+
+  </body>
+</html>
