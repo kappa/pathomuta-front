@@ -51,7 +51,7 @@
             </li>
             <li><a href="#about">О проекте</a></li>
           </ul>
-        </div><!--/.nav-collapse -->
+        </div>
       </div>
     </nav>
 
@@ -141,7 +141,7 @@
     <script src="https://raw.github.com/janl/mustache.js/master/mustache.js"></script>
 
 <script>
-function load_vcf() {
+function load_vcf(ev) {
 	var vcf = {
 		name : "vcfBeta-NA18504-200-37-ASM.vcf",
 		genes : [
@@ -164,8 +164,15 @@ function load_vcf() {
 	    ]
 	};
 
-	$('#vcf-info').mustache('tmpl-vcf-info', vcf, { method : 'html' });
-	$('#vcf-info a').click(load_mutation);
+	var id = $(this).data('id');
+	$.get('/cgi-bin/get-vcf?id=' + id).done(function(data) {
+		var vcf = $.parseJSON(data);
+
+		$('#vcf-info').mustache('tmpl-vcf-info', vcf, { method : 'html' });
+		$('#vcf-info a').click(load_mutation);
+	    });
+
+	ev.preventDefault();
 }
 
 function map2arr(obj) {
@@ -173,7 +180,7 @@ function map2arr(obj) {
 	    function(key) { return { "key" : key, "val" : obj[key] }; } );
 }
 
-function load_mutation() {
+function load_mutation(ev) {
 	var id = $(this).data('id');
 	$.get('/cgi-bin/get-mutation?id=' + id).done(function(data) {
 		var mu = $.parseJSON(data);
@@ -184,17 +191,23 @@ function load_mutation() {
 		$('#mutation').mustache('tmpl-mutation-info', mu,
 		    { method : 'html' });
 	    });
+
+	ev.preventDefault();
 }
 
 $(function() {
     $.Mustache.addFromDom();
 
-    // fill VCF menu
-    var vcfs = { vcfs : [ { name : "vcfBeta-NA18504-200-37-ASM.vcf", id :
-    1}, { name : "vcfBeta-NA19834-200-37-ASM.vcf", id : 2 } ] };
+    var vcfs = { vcfs : [ { "name" : "vcfBeta-NA18504-200-37-ASM.vcf", "id" : "1"}, { "name" : "vcfBeta-NA19834-200-37-ASM.vcf", id : 2 } ] };
 
-    $('#vcf-menu').mustache('tmpl-vcf-menu', vcfs, { method : 'html' });
-    $('#vcf-menu a').click(load_vcf);
+    // fill VCF menu
+	$.get('/cgi-bin/list-vcfs').done(function(data) {
+		var vcfs = $.parseJSON(data);
+
+		$('#vcf-menu').mustache('tmpl-vcf-menu', { vcfs : vcfs }, { method : 'html' });
+		$('#vcf-menu a').click(load_vcf);
+	    });
+
 });
 </script>
 
