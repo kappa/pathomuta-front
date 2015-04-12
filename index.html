@@ -73,7 +73,7 @@
       </div>
 
       <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-6" style="overflow-y: scroll; overflow-x: hidden; max-height: 500px">
           <table class="table table-striped">
             <thead>
               <tr>
@@ -84,12 +84,17 @@
             <tbody>
 	      {{#genes}}
               <tr>
-		<td><span class="label label-default"
+		<td style="width: 15m; overflow: hidden;"><span class="label label-default"
 			data-id="{{ id }}">{{ name }}</span></td>
                 <td>
+		{{#mut_count}}
+			{{ mut_count }} мутаций скрыто
+		{{/mut_count}}
+		{{^mut_count}}
 		{{#mutations}}
-		<a href=# data-id="{{ id }}">{{ name }}</a>
+		<a href=# data-id="{{ ID }}">rs{{ rsId }}</a>
 		{{/mutations}}
+		{{/mut_count}}
 		</td>
               </tr>
 	      {{/genes}}
@@ -111,9 +116,9 @@
 
 <script type="text/html" id="tmpl-mutation-info">
 		    <div class="panel-heading">
-		      <h3 class="panel-title">{{ name }}</h3>
+		      <h3 class="panel-title">rs{{ name }}</h3>
 		    </div>
-		    <div class="panel-body">
+		    <div class="panel-body" style="overflow: hidden">
 			  <table class="table">
 			    <thead>
 			      <tr>
@@ -123,10 +128,12 @@
 			    </thead>
 			    <tbody>
 		      {{#content}}
+			{{#val}}
 			      <tr>
 				<td>{{ key }}</td>
 				<td>{{ val }}</td>
 			      </tr>
+			{{/val}}
 		      {{/content}}
 			    </tbody>
 			  </table>
@@ -137,8 +144,8 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src="/kappa/js/bootstrap.min.js"></script>
-    <script src="https://raw.github.com/jonnyreeves/jquery-Mustache/master/jquery.mustache.js"></script>
-    <script src="https://raw.github.com/janl/mustache.js/master/mustache.js"></script>
+    <script src="https://cdn.rawgit.com/jonnyreeves/jquery-Mustache/master/jquery.mustache.js"></script>
+    <script src="https://cdn.rawgit.com/janl/mustache.js/master/mustache.js"></script>
 
 <script>
 function load_vcf(ev) {
@@ -168,6 +175,17 @@ function load_vcf(ev) {
 	$.get('/cgi-bin/get-vcf?id=' + id).done(function(data) {
 		var vcf = $.parseJSON(data);
 
+		vcf.genes.forEach(function (el, el_i, arr) {
+		    if (el.name == "Unknown_gene") {
+			el.mut_count = el.mutations.length;
+			el.mutations = [ ];
+		    }
+
+		    if (el.name.length > 20)
+			el.name = el.name.substring(0, 15) + "...";
+		});
+		vcf.genes.sort(function (a, b) { return b.mutations.length - a.mutations.length });
+
 		$('#vcf-info').mustache('tmpl-vcf-info', vcf, { method : 'html' });
 		$('#vcf-info a').click(load_mutation);
 	    });
@@ -183,10 +201,12 @@ function map2arr(obj) {
 function load_mutation(ev) {
 	var id = $(this).data('id');
 	$.get('/cgi-bin/get-mutation?id=' + id).done(function(data) {
-		var mu = $.parseJSON(data);
+		var mu = $.parseJSON(data)[0];
 		delete mu.id;
-		mu.content = map2arr(mu);
-		mu.name = id;
+		mu.content = map2arr(mu).filter(function (el, el_i, arr) {
+		    return el.val && el.val != '.';
+		});
+		mu.name = mu.rsId;
 
 		$('#mutation').mustache('tmpl-mutation-info', mu,
 		    { method : 'html' });
@@ -196,18 +216,14 @@ function load_mutation(ev) {
 }
 
 $(function() {
-    $.Mustache.addFromDom();
+	$.Mustache.addFromDom();
 
-    var vcfs = { vcfs : [ { "name" : "vcfBeta-NA18504-200-37-ASM.vcf", "id" : "1"}, { "name" : "vcfBeta-NA19834-200-37-ASM.vcf", id : 2 } ] };
-
-    // fill VCF menu
 	$.get('/cgi-bin/list-vcfs').done(function(data) {
 		var vcfs = $.parseJSON(data);
 
 		$('#vcf-menu').mustache('tmpl-vcf-menu', { vcfs : vcfs }, { method : 'html' });
 		$('#vcf-menu a').click(load_vcf);
-	    });
-
+	});
 });
 </script>
 
